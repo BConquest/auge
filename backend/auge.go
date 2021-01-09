@@ -1,15 +1,15 @@
 package main
 
 import (
-	"fmt"
+	"github.com/labstack/echo"
 
-	"paxavis.dev/paxavis/auge/src/models"
+	"paxavis.dev/paxavis/auge/src/handler"
 )
 
 func main() {
-	var f models.User
+	e := echo.New()
 
-	f.Email = "email"
+	e.Post("/signup", handler.Signup)
 
-	fmt.Printf("%s\n", f.Email)
+	e.Logger.Fatal(e.Start(":1234"))
 }
