@@ -2,7 +2,6 @@ package lib
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"time"
 
@@ -36,13 +35,24 @@ func CheckUsernameExists(name string) bool {
 
 	userCollection := client.Database("development").Collection("users")
 
-	filterCursor, err := userCollection.Find(ctx, bson.M{"username": name})
+	log.Printf("> %s\n", name)
+	cursor, err := userCollection.Find(
+		ctx,
+		bson.M{"username": name},
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	var usernamesFound []bson.M
-	if err = filterCursor.All(ctx, &usernamesFound); err != nil {
-		log.Println(err)
+	if err = cursor.All(ctx, &usernamesFound); err != nil {
+		log.Fatal(err)
+	}
+
+	if len(usernamesFound) == 0 {
 		return true
 	}
-	fmt.Println("Username Found")
+
 	return false
 }
 

@@ -9,7 +9,7 @@ import (
 func main() {
 	e := echo.New()
 
-	e.Post("/signup", handler.Signup)
+	e.POST("/signup", handler.Signup)
 
 	e.Logger.Fatal(e.Start(":1234"))
 }

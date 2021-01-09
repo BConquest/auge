@@ -67,6 +67,7 @@ func CreateUser(u models.User) (models.User, error) {
 
 	u.Password = hashAndSalt([]byte(u.Password))
 	u.DateCreated = time.Now()
+	u.Email = ""
 
 	return u, nil
 }

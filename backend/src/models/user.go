@@ -9,10 +9,10 @@ import (
 type (
 	User struct {
 		ID          bsontype.Type `json:"id" bson:"_id,omitempty"`
-		Email       string        `json:"email" bson:"email"`
+		Email       string        `json:"email,omitempty" bson:"email"`
 		Username    string        `json:"username" bson:"username"`
-		Password    string        `json:"password,omitempty" bson:"username"`
+		Password    string        `json:"password" bson:"password"`
 		DateCreated time.Time     `json:"datecreated" bson:"datecreated"`
-		Token       string        `json:"followers,omitempty" bson:"-"`
+		Token       string        `json:"tokens,omitempty" bson:"-"`
 	}
 )
