@@ -1,7 +1,15 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"paxavis.dev/paxavis/auge/src/models"
+)
 
 func main() {
-	fmt.Println("vim-go")
+	var f models.User
+
+	f.Email = "email"
+
+	fmt.Printf("%s\n", f.Email)
 }
