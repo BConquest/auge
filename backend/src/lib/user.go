@@ -34,7 +34,7 @@ func ValidatePassword(password string) (bool, string) {
 	return true, ""
 }
 
-func hashAndSalt(password []byte) string {
+func HashAndSalt(password []byte) string {
 	// Use GenerateFromPassword from bcrypt
 	hash, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 
@@ -45,13 +45,14 @@ func hashAndSalt(password []byte) string {
 	return string(hash)
 }
 
-func ComparePassword(hashedPassword string, password []byte) (bool, error) {
+func ComparePassword(hashedPassword string, password string) (bool, error) {
 	byteHash := []byte(hashedPassword)
+	passHash := []byte(password)
 
-	err := bcrypt.CompareHashAndPassword(byteHash, password)
+	err := bcrypt.CompareHashAndPassword(byteHash, passHash)
 
 	if err != nil {
-		log.Println(err)
+		log.Printf("(WW) ComparePassword >>> %v\n", err)
 		return false, err
 	}
 
