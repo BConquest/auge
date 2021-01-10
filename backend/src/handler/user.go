@@ -3,6 +3,7 @@ package handler
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo"
 	//"go.mongodb.org/mongo-driver/bson"
@@ -27,15 +28,37 @@ func Signup(c echo.Context) (err error) {
 	*/
 	check, response := lib.ValidateUsername(u.Username)
 	if check == false {
-		log.Printf("(WW) Signup: Invalid Username >>> %s\n", err)
+		log.Printf("(WW) Signup: Invalid Username >>> %s\n", u.Username)
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: response}
 	}
 
-	check, response = lib.ValidatePassword(u.Username)
+	check, response = lib.ValidatePassword(u.Password)
 	if check == false {
-		log.Printf("(WW) Signup: Invalid Password >>> %s\n", err)
+		log.Printf("(WW) Signup: Invalid Password >>> %s\n", u.Password)
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: response}
 	}
+	log.Printf("(II) Signup: User >>> %s\n", u)
+
+	/*
+		Check to make shure that the username does not already exists in the database
+	*/
+
+	check, err = lib.CheckUsernameExists(u.Username)
+	if err != nil {
+		log.Printf("(WW) Signup: CheckUsernameExists >>> %s\n", err)
+	}
+
+	if check == true {
+		log.Printf("(WW) Signup: Username Already Exists >>> %s\n", u.Username)
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "Username exists"}
+	}
+
+	/*
+		Set the date created to be the time that it is inserted into the database
+	*/
+	u.DateCreated = time.Now()
+
+	err = lib.InsertUser(*u)
 
 	return c.JSON(http.StatusCreated, u)
 }

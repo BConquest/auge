@@ -2,7 +2,6 @@ package lib
 
 import (
 	"context"
-	//"errors"
 	"log"
 	"time"
 
@@ -13,93 +12,54 @@ import (
 	"paxavis.dev/paxavis/auge/src/models"
 )
 
-func getClient() *mongo.Client {
+func getConnection() (*mongo.Client, error) {
 	client, err := mongo.NewClient(options.Client().ApplyURI(GetMongoDBURI("./config.toml")))
-
 	if err != nil {
-		log.Fatal("getClient() Failed")
-		log.Fatal(err)
+		return client, err
 	}
 
-	return client
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	err = client.Connect(ctx)
+	if err != nil {
+		return client, err
+	}
+
+	return client, nil
 }
 
-func CheckUsernameExists(name string) bool {
-	client := getClient()
+func InsertUser(user models.User) error {
+	client, err := getConnection()
 
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	er := client.Connect(ctx)
-	if er != nil {
-		log.Fatal(er)
+	if err != nil {
+		return err
 	}
-	defer client.Disconnect(ctx)
 
 	userCollection := client.Database("development").Collection("users")
 
-	log.Printf("> %s\n", name)
-	cursor, err := userCollection.Find(
-		ctx,
-		bson.M{"username": name},
-	)
+	res, err := userCollection.InsertOne(context.Background(), user)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-
-	var usernamesFound []bson.M
-	if err = cursor.All(ctx, &usernamesFound); err != nil {
-		log.Fatal(err)
-	}
-
-	if len(usernamesFound) == 0 {
-		return true
-	}
-
-	return false
-}
-
-func InsertUser(newUser models.User) {
-	client := getClient()
-
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	er := client.Connect(ctx)
-	if er != nil {
-		log.Fatal(er)
-	}
-	defer client.Disconnect(ctx)
-
-	collection := client.Database("development").Collection("users")
-	insertResult, err := collection.InsertOne(context.TODO(), newUser)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Println("Inserted post with ID:", insertResult.InsertedID)
-}
-
-func GetUser(username string) error {
-	client := getClient()
-
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-	er := client.Connect(ctx)
-	if er != nil {
-		log.Fatal(er)
-	}
-	defer client.Disconnect(ctx)
-
-	userCollection := client.Database("development").Collection("users")
-
-	user := new(models.User)
-
-	err := userCollection.FindOne(
-		ctx,
-		bson.D{{"username", username}},
-	).Decode(&user)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	log.Printf("%v\n", user)
-
+	log.Printf("(II) Mongo.go: InsertedUser >>> %v\n", res)
 	return nil
+}
+
+func CheckUsernameExists(username string) (bool, error) {
+	client, err := getConnection()
+	if err != nil {
+		return true, err
+	}
+
+	userCollection := client.Database("development").Collection("users")
+
+	filter := bson.D{{"username", username}}
+	var result bson.M
+	res := userCollection.FindOne(context.Background(), filter).Decode(&result)
+	if res != nil {
+		if res == mongo.ErrNoDocuments {
+			return false, nil
+		}
+	}
+	return true, nil
 }
