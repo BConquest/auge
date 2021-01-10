@@ -1,17 +1,13 @@
 package lib
 
 import (
-	"errors"
 	"log"
 	"regexp"
-	"time"
 
 	"golang.org/x/crypto/bcrypt"
-
-	"paxavis.dev/paxavis/auge/src/models"
 )
 
-func checkUsername(username string) (bool, string) {
+func ValidateUsername(username string) (bool, string) {
 	// Must be in between 3 and 15 characters
 	// Must be alphanumeric
 
@@ -26,14 +22,10 @@ func checkUsername(username string) (bool, string) {
 		return false, "Username is not alphanumeric"
 	}
 
-	if !CheckUsernameExists(username) {
-		return false, "Username exists"
-	}
-
 	return true, ""
 }
 
-func checkPassword(password string) (bool, string) {
+func ValidatePassword(password string) (bool, string) {
 	// Must be at least 8 characters long
 	runePassword := []rune(password)
 	if len(runePassword) < 8 {
@@ -44,7 +36,6 @@ func checkPassword(password string) (bool, string) {
 
 func hashAndSalt(password []byte) string {
 	// Use GenerateFromPassword from bcrypt
-
 	hash, err := bcrypt.GenerateFromPassword(password, bcrypt.DefaultCost)
 
 	if err != nil {
@@ -54,25 +45,7 @@ func hashAndSalt(password []byte) string {
 	return string(hash)
 }
 
-func CreateUser(u models.User) (models.User, error) {
-	var check, statement = checkUsername(u.Username)
-
-	if !check {
-		return u, errors.New(statement)
-	}
-	check, statement = checkPassword(u.Password)
-	if !check {
-		return u, errors.New(statement)
-	}
-
-	u.Password = hashAndSalt([]byte(u.Password))
-	u.DateCreated = time.Now()
-	u.Email = ""
-
-	return u, nil
-}
-
-func LoginUser(hashedPassword string, password []byte) (bool, error) {
+func ComparePassword(hashedPassword string, password []byte) (bool, error) {
 	byteHash := []byte(hashedPassword)
 
 	err := bcrypt.CompareHashAndPassword(byteHash, password)

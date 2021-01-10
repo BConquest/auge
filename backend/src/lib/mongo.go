@@ -2,6 +2,7 @@ package lib
 
 import (
 	"context"
+	//"errors"
 	"log"
 	"time"
 
@@ -74,4 +75,31 @@ func InsertUser(newUser models.User) {
 	}
 
 	log.Println("Inserted post with ID:", insertResult.InsertedID)
+}
+
+func GetUser(username string) error {
+	client := getClient()
+
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	er := client.Connect(ctx)
+	if er != nil {
+		log.Fatal(er)
+	}
+	defer client.Disconnect(ctx)
+
+	userCollection := client.Database("development").Collection("users")
+
+	user := new(models.User)
+
+	err := userCollection.FindOne(
+		ctx,
+		bson.D{{"username", username}},
+	).Decode(&user)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("%v\n", user)
+
+	return nil
 }

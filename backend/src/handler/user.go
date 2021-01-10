@@ -14,21 +14,28 @@ import (
 func Signup(c echo.Context) (err error) {
 	u := &models.User{}
 
-	log.Printf(">> %v\n", c)
 	err = c.Bind(u)
 	if err != nil {
-		log.Printf("(EE) Signup: %s\n", err)
-		return
+		log.Printf("(EE) Signup: Binding Error >>> %s\n", err)
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "Malformed Input"}
 	}
 
-	nu, err := lib.CreateUser(*u)
-	if err != nil {
-		log.Printf("%v\n", err)
-		return &echo.HTTPError{Code: http.StatusBadRequest,
-			Message: "invalid email or password"}
+	/*
+		Checks the "form" of the username and password. Done so different frontends
+		can be made and still have the same requirements. They should also be checked
+		on the frontend.
+	*/
+	check, response := lib.ValidateUsername(u.Username)
+	if check == false {
+		log.Printf("(WW) Signup: Invalid Username >>> %s\n", err)
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: response}
 	}
 
-	lib.InsertUser(nu)
+	check, response = lib.ValidatePassword(u.Username)
+	if check == false {
+		log.Printf("(WW) Signup: Invalid Password >>> %s\n", err)
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: response}
+	}
 
-	return c.JSON(http.StatusCreated, nu)
+	return c.JSON(http.StatusCreated, u)
 }
