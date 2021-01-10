@@ -54,6 +54,11 @@ func Signup(c echo.Context) (err error) {
 	}
 
 	/*
+		Hash the password now that it is being inserted
+	*/
+	u.Password = lib.HashAndSalt([]byte(u.Password))
+
+	/*
 		Set the date created to be the time that it is inserted into the database
 	*/
 	u.DateCreated = time.Now()
@@ -61,4 +66,30 @@ func Signup(c echo.Context) (err error) {
 	err = lib.InsertUser(*u)
 
 	return c.JSON(http.StatusCreated, u)
+}
+
+func Login(c echo.Context) (err error) {
+	u := new(models.User)
+	if err = c.Bind(u); err != nil {
+		return
+	}
+
+	userP, err := lib.GetUser(u.Username)
+	if err != nil {
+		log.Printf("(WW) Login: Error Getting User >>> %s\n", u.Username)
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "Error Logging In"}
+	}
+
+	log.Printf("<><%v\n", userP)
+	check, res := lib.ComparePassword(userP.Password, u.Password)
+	if res != nil || check == false {
+		log.Printf("(WW) Login: Wrong Password\n")
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "Error Logging In"}
+	}
+
+	if check == true {
+		return c.HTML(http.StatusOK, "<p>hey</p>")
+	}
+
+	return &echo.HTTPError{Code: http.StatusBadRequest, Message: "Error Logging In"}
 }

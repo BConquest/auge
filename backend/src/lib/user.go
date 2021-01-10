@@ -48,6 +48,7 @@ func HashAndSalt(password []byte) string {
 func ComparePassword(hashedPassword string, password string) (bool, error) {
 	byteHash := []byte(hashedPassword)
 	passHash := []byte(password)
+	log.Printf("%v == %v\n", hashedPassword, password)
 
 	err := bcrypt.CompareHashAndPassword(byteHash, passHash)
 

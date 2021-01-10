@@ -63,3 +63,25 @@ func CheckUsernameExists(username string) (bool, error) {
 	}
 	return true, nil
 }
+
+func GetUser(username string) (models.User, error) {
+	var user models.User
+
+	client, err := getConnection()
+	if err != nil {
+		log.Printf("(EE) GetUser: error getting connection >>> %v\n", err)
+		return user, err
+	}
+
+	userCollection := client.Database("development").Collection("users")
+
+	filter := bson.D{{"username", username}}
+	var result bson.M
+	res := userCollection.FindOne(context.Background(), filter).Decode(&result)
+	if res != nil {
+		log.Printf("(WW) GetUser: error finding user\n")
+		return user, err
+	}
+
+	return user, nil
+}
