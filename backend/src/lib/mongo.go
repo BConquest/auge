@@ -76,12 +76,15 @@ func GetUser(username string) (models.User, error) {
 	userCollection := client.Database("development").Collection("users")
 
 	filter := bson.D{{"username", username}}
-	var result bson.M
-	res := userCollection.FindOne(context.Background(), filter).Decode(&result)
+	var result bson.D
+	res := userCollection.FindOne(context.Background(), filter).Decode(&user)
 	if res != nil {
-		log.Printf("(WW) GetUser: error finding user\n")
+		log.Printf("(WW) GetUser: error finding user: %v\n", res)
 		return user, err
 	}
+
+	log.Printf("|>%v\n", result)
+	log.Printf("->%v\n", user)
 
 	return user, nil
 }
