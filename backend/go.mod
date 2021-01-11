@@ -3,6 +3,7 @@ module paxavis.dev/paxavis/auge
 go 1.15
 
 require (
+	github.com/cristalhq/jwt/v3 v3.0.4
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/gommon v0.3.0 // indirect
 	github.com/mattn/go-colorable v0.1.8 // indirect

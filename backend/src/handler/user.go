@@ -6,7 +6,8 @@ import (
 	"time"
 
 	"github.com/labstack/echo"
-	//"go.mongodb.org/mongo-driver/bson"
+
+	"github.com/cristalhq/jwt/v3"
 
 	"paxavis.dev/paxavis/auge/src/lib"
 	"paxavis.dev/paxavis/auge/src/models"
@@ -80,16 +81,42 @@ func Login(c echo.Context) (err error) {
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "Error Logging In"}
 	}
 
-	log.Printf("<><%v\n", userP)
 	check, res := lib.ComparePassword(userP.Password, u.Password)
 	if res != nil || check == false {
 		log.Printf("(WW) Login: Wrong Password\n")
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "Error Logging In"}
 	}
 
-	if check == true {
-		return c.HTML(http.StatusOK, "<p>hey</p>")
+	/*
+		JWT
+	*/
+	key := []byte(lib.GetJWTSecret("./config.toml"))
+	signer, err := jwt.NewSignerHS(jwt.HS256, key)
+	if err != nil {
+		log.Printf("(WW) Login: error getting new jwt signer >>> %v\n", err)
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "Error Logging In"}
 	}
 
-	return &echo.HTTPError{Code: http.StatusBadRequest, Message: "Error Logging In"}
+	claims := &jwt.StandardClaims{
+		Audience:  []string{"user"},
+		ID:        u.username,
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 72)),
+	}
+
+	builder := jwt.NewBuilder(signer)
+	token, err := builder.Build(claims)
+	if err != nil {
+		log.Printf("(WW) Login: error building claims >>> %v\n", err)
+		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "Error Logging In"}
+	}
+
+	u.Token = token.String()
+	u.Password = ""
+
+	return c.JSON(http.StatusOK, u)
+}
+
+func AddBookMark(c echo.Context) (err error) {
+
+	return
 }
