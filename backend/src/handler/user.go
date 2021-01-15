@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 
-	"github.com/cristalhq/jwt/v3"
+	"github.com/dgrijalva/jwt-go"
 
 	"paxavis.dev/paxavis/auge/src/lib"
 	"paxavis.dev/paxavis/auge/src/models"
@@ -38,7 +38,6 @@ func Signup(c echo.Context) (err error) {
 		log.Printf("(WW) Signup: Invalid Password >>> %s\n", u.Password)
 		return &echo.HTTPError{Code: http.StatusBadRequest, Message: response}
 	}
-	log.Printf("(II) Signup: User >>> %s\n", u)
 
 	/*
 		Check to make shure that the username does not already exists in the database
@@ -64,9 +63,21 @@ func Signup(c echo.Context) (err error) {
 	*/
 	u.DateCreated = time.Now()
 
-	err = lib.InsertUser(*u)
+	/*
+		Leave email blank for now
+		Update in different API call
+	*/
+	u.Email = ""
 
-	return c.JSON(http.StatusCreated, u)
+	u.Type = "user"
+
+	err = lib.InsertUser(*u)
+	if err != nil {
+		log.Printf("(WW) Error Inserting User >>> %v\n", err)
+		return err
+	}
+
+	return c.JSON(http.StatusCreated, "success")
 }
 
 func Login(c echo.Context) (err error) {
@@ -91,32 +102,22 @@ func Login(c echo.Context) (err error) {
 		JWT
 	*/
 	key := []byte(lib.GetJWTSecret("./config.toml"))
-	signer, err := jwt.NewSignerHS(jwt.HS256, key)
+
+	token := jwt.New(jwt.SigningMethodHS256)
+
+	claims := token.Claims.(jwt.MapClaims)
+	claims["id"] = userP.Username
+	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
+	claims["audience"] = userP.Type
+
+	/*
+		Set Required Fields
+	*/
+	userP.Password = ""
+	userP.Token, err = token.SignedString([]byte(key))
 	if err != nil {
-		log.Printf("(WW) Login: error getting new jwt signer >>> %v\n", err)
-		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "Error Logging In"}
+		return err
 	}
 
-	claims := &jwt.StandardClaims{
-		Audience:  []string{"user"},
-		ID:        u.username,
-		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 72)),
-	}
-
-	builder := jwt.NewBuilder(signer)
-	token, err := builder.Build(claims)
-	if err != nil {
-		log.Printf("(WW) Login: error building claims >>> %v\n", err)
-		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "Error Logging In"}
-	}
-
-	u.Token = token.String()
-	u.Password = ""
-
-	return c.JSON(http.StatusOK, u)
-}
-
-func AddBookMark(c echo.Context) (err error) {
-
-	return
+	return c.JSON(http.StatusOK, userP)
 }

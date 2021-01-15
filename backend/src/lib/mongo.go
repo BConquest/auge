@@ -38,11 +38,48 @@ func InsertUser(user models.User) error {
 	userCollection := client.Database("development").Collection("users")
 
 	res, err := userCollection.InsertOne(context.Background(), user)
+	log.Printf("%v\n", res)
 	if err != nil {
 		return err
 	}
-	log.Printf("(II) Mongo.go: InsertedUser >>> %v\n", res)
 	return nil
+}
+
+func InsertBookmark(bm models.Bookmark) error {
+	client, err := getConnection()
+
+	if err != nil {
+		return err
+	}
+
+	userCollection := client.Database("development").Collection("bookmarks")
+
+	res, err := userCollection.InsertOne(context.Background(), bm)
+	log.Printf("%v\n", res)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func CheckIfBookmarked(username string, link string) (bool, error) {
+	client, err := getConnection()
+	if err != nil {
+		return true, err
+	}
+
+	userCollection := client.Database("development").Collection("bookmarks")
+
+	log.Printf("User: %v\tLink: %v\n", username, link)
+	filter := bson.D{{"user", username}, {"link", link}}
+	var result bson.M
+	res := userCollection.FindOne(context.Background(), filter).Decode(&result)
+	if res != nil {
+		if res == mongo.ErrNoDocuments {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func CheckUsernameExists(username string) (bool, error) {
