@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
@@ -9,6 +11,10 @@ import (
 	"paxavis.dev/paxavis/auge/src/handler"
 	"paxavis.dev/paxavis/auge/src/lib"
 )
+
+func allowOrigin(origin string) (bool, error) {
+	return true, nil
+}
 
 func main() {
 	e := echo.New()
@@ -27,11 +33,15 @@ func main() {
 		},
 	}))
 
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowMethods: []string{http.MethodPost, http.MethodDelete, http.MethodGet},
+	}))
+
 	e.POST("/signup", handler.Signup)
 	e.POST("/login", handler.Login)
 	e.POST("/bookmark", handler.CreateBookmark)
-    
-    e.GET("/user/:id", handler.RequestUser)
+
+	e.GET("/user/:id", handler.RequestUser)
 
 	e.Logger.Fatal(e.Start(":1234"))
 }

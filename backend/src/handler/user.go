@@ -123,15 +123,15 @@ func Login(c echo.Context) (err error) {
 }
 
 func RequestUser(c echo.Context) (err error) {
-    username := usernameFromToken(c)
-    
-    user := models.User{}
-    user, err = lib.GetUser(username)
-    if err != nil {
-        return err
-    }
+	username := usernameFromToken(c)
 
-    user.Password = ""
+	user := models.User{}
+	user, err = lib.GetUser(username)
+	if err != nil {
+		return err
+	}
 
-    return c.JSON(http.StatusOK, user)
+	user.Password = ""
+
+	return c.JSON(http.StatusOK, user)
 }
