@@ -30,6 +30,8 @@ func main() {
 	e.POST("/signup", handler.Signup)
 	e.POST("/login", handler.Login)
 	e.POST("/bookmark", handler.CreateBookmark)
+    
+    e.GET("/user/:id", handler.RequestUser)
 
 	e.Logger.Fatal(e.Start(":1234"))
 }

@@ -121,3 +121,17 @@ func Login(c echo.Context) (err error) {
 
 	return c.JSON(http.StatusOK, userP)
 }
+
+func RequestUser(c echo.Context) (err error) {
+    username := usernameFromToken(c)
+    
+    user := models.User{}
+    user, err = lib.GetUser(username)
+    if err != nil {
+        return err
+    }
+
+    user.Password = ""
+
+    return c.JSON(http.StatusOK, user)
+}
