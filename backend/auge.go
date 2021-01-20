@@ -5,7 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"golang.org/x/crypto/acme/autocert"
+	//	"golang.org/x/crypto/acme/autocert"
 
 	//"github.com/dgrijalva/jwt-go"
 
@@ -44,7 +44,5 @@ func main() {
 
 	e.GET("/user/:id", handler.RequestUser)
 
-	e.AutoTLSManager.Cache = autocert.DirCache("/var/www/.cache")
-
-	e.Logger.Fatal(e.StartAutoTLS(":1234"))
+	e.Logger.Fatal(e.Start(":1234"))
 }
