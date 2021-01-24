@@ -5,9 +5,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	//	"golang.org/x/crypto/acme/autocert"
-
-	//"github.com/dgrijalva/jwt-go"
 
 	"paxavis.dev/paxavis/auge/src/handler"
 	"paxavis.dev/paxavis/auge/src/lib"
@@ -34,9 +31,7 @@ func main() {
 		},
 	}))
 
-	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowMethods: []string{http.MethodPost, http.MethodDelete, http.MethodGet},
-	}))
+	e.Use(middleware.CORS())
 
 	e.POST("/signup", handler.Signup)
 	e.POST("/login", handler.Login)
