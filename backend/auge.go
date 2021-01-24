@@ -1,8 +1,6 @@
 package main
 
 import (
-	"net/http"
-
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
@@ -19,6 +17,8 @@ func main() {
 
 	secret := []byte(lib.GetJWTSecret("./config.toml"))
 
+	e.Use(middleware.CORS())
+
 	e.Use(middleware.JWTWithConfig(middleware.JWTConfig{
 		ContextKey:    "user",
 		SigningKey:    secret,
@@ -31,13 +31,12 @@ func main() {
 		},
 	}))
 
-	e.Use(middleware.CORS())
-
 	e.POST("/signup", handler.Signup)
 	e.POST("/login", handler.Login)
-	e.POST("/bookmark", handler.CreateBookmark)
+	e.POST("/addbookmark", handler.CreateBookmark)
 
 	e.GET("/user/:id", handler.RequestUser)
+	e.GET("/bookmark", handler.GetBookmarks)
 
 	e.Logger.Fatal(e.Start(":1234"))
 }
