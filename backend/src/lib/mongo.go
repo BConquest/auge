@@ -121,3 +121,35 @@ func GetUser(username string) (models.User, error) {
 
 	return user, nil
 }
+
+func GetUserBookmarks(username string) ([]models.Bookmark, error) {
+	var bookmarks []models.Bookmark
+
+	client, err := getConnection()
+	if err != nil {
+		log.Printf("(WW) GetUserBookmarks: error getting connection >>> %v\n", err)
+		return bookmarks, err
+	}
+
+	collection := client.Database("development").Collection("bookmarks")
+
+	filter := bson.D{{"user", username}}
+	cur, err := collection.Find(context.Background(), filter)
+	if err != nil {
+		log.Printf("(WW) GetUserBookmarks: error in Find >>> %v\n", err)
+		return bookmarks, err
+	}
+	for cur.Next(context.Background()) {
+		var b models.Bookmark
+		err := cur.Decode(&b)
+		if err != nil {
+			log.Printf("(WW) GetUserBookmarks: error in Decode >>> %v\n", err)
+			return bookmarks, err
+		}
+
+		bookmarks = append(bookmarks, b)
+	}
+	cur.Close(context.Background())
+
+	return bookmarks, nil
+}

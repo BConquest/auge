@@ -3,6 +3,7 @@ package handler
 import (
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -39,7 +40,7 @@ func CreateBookmark(c echo.Context) (err error) {
 	check, er := lib.CheckIfBookmarked(b.User, b.Link)
 	if er != nil || check == false {
 		log.Printf("Bookmark Already Exists")
-		return c.JSON(http.StatusAlreadyReported, "error")
+		return c.JSON(http.StatusAlreadyReported, "Bookmark already added")
 	}
 
 	err = lib.InsertBookmark(*b)
@@ -48,4 +49,20 @@ func CreateBookmark(c echo.Context) (err error) {
 	}
 
 	return c.JSON(http.StatusCreated, usernameFromToken(c))
+}
+
+func GetBookmarks(c echo.Context) (err error) {
+	username := usernameFromToken(c)
+	page, _ := strconv.Atoi(c.QueryParam("page"))
+	limit, _ := strconv.Atoi(c.QueryParam("limit"))
+	if limit == 0 {
+		limit = 100
+	}
+	if page == 0 {
+		page = 1
+	}
+
+	bookmarks, err := lib.GetUserBookmarks(username)
+
+	return c.JSON(http.StatusOK, bookmarks)
 }

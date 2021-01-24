@@ -38,5 +38,5 @@ func main() {
 	e.GET("/user/:id", handler.RequestUser)
 	e.GET("/bookmark", handler.GetBookmarks)
 
-	e.Logger.Fatal(e.Start(":1234"))
+	e.Logger.Fatal(e.Start(":12345"))
 }
