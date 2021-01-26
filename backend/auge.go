@@ -21,6 +21,8 @@ func main() {
 
 	e.AutoTLSManager.Cache = autocert.DirCache("/var/www/.cache")
 
+	e.Pre(middleware.HTTPSRedirect())
+
 	e.Use(middleware.CORS())
 
 	e.Use(middleware.JWTWithConfig(middleware.JWTConfig{
