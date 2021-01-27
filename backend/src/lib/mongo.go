@@ -40,6 +40,8 @@ func InsertUser(user models.User) error {
 	userCollection := client.Database("development").Collection("users")
 
 	res, err := userCollection.InsertOne(context.Background(), user)
+	client.Disconnect(context.Background())
+
 	if err != nil {
 		return err
 	}
@@ -57,6 +59,8 @@ func InsertBookmark(bm models.Bookmark) error {
 	userCollection := client.Database("development").Collection("bookmarks")
 
 	res, err := userCollection.InsertOne(context.Background(), bm)
+	client.Disconnect(context.Background())
+
 	if err != nil {
 		return err
 	}
@@ -75,6 +79,8 @@ func CheckIfBookmarked(username string, link string) (bool, error) {
 	filter := bson.M{"user": username, "link": link}
 	var result bson.M
 	res := userCollection.FindOne(context.Background(), filter).Decode(&result)
+	client.Disconnect(context.Background())
+
 	if res != nil {
 		if res == mongo.ErrNoDocuments {
 			return true, nil
@@ -94,6 +100,8 @@ func CheckUsernameExists(username string) (bool, error) {
 	filter := bson.M{"username": username}
 	var result bson.M
 	res := userCollection.FindOne(context.Background(), filter).Decode(&result)
+	client.Disconnect(context.Background())
+
 	if res != nil {
 		if res == mongo.ErrNoDocuments {
 			return false, nil
@@ -114,6 +122,8 @@ func GetUser(username string) (models.User, error) {
 
 	filter := bson.M{"username": username}
 	res := userCollection.FindOne(context.Background(), filter).Decode(&user)
+	client.Disconnect(context.Background())
+
 	if res != nil {
 		return user, err
 	}
@@ -133,6 +143,7 @@ func GetUserBookmarks(username string) ([]models.Bookmark, error) {
 
 	filter := bson.M{"user": username}
 	cur, err := collection.Find(context.Background(), filter)
+
 	if err != nil {
 		return bookmarks, err
 	}
@@ -140,6 +151,7 @@ func GetUserBookmarks(username string) ([]models.Bookmark, error) {
 		var b models.Bookmark
 		err := cur.Decode(&b)
 		if err != nil {
+			client.Disconnect(context.Background())
 			return bookmarks, err
 		}
 
@@ -147,6 +159,7 @@ func GetUserBookmarks(username string) ([]models.Bookmark, error) {
 	}
 	cur.Close(context.Background())
 
+	client.Disconnect(context.Background())
 	return bookmarks, nil
 }
 
@@ -163,6 +176,8 @@ func GetUserBookmark(username string, id string) (models.Bookmark, error) {
 	t, err := primitive.ObjectIDFromHex(id)
 	filter := bson.M{"user": username, "_id": t}
 	res := collection.FindOne(context.Background(), filter).Decode(&bookmark)
+
+	client.Disconnect(context.Background())
 	if res != nil {
 		return bookmark, res
 	}
@@ -185,6 +200,8 @@ func RemoveBookmark(username string, id string) error {
 
 	filter := bson.M{"_id": t, "username": username}
 	res, err := collection.DeleteOne(context.Background(), filter)
+	client.Disconnect(context.Background())
+
 	if err != nil {
 		return err
 	}
@@ -217,6 +234,8 @@ func AddTag(username string, id string, tag string) error {
 	}
 
 	updateResult, err := collection.UpdateOne(context.Background(), filter, update)
+
+	client.Disconnect(context.Background())
 	if err != nil {
 		return err
 	}
@@ -249,6 +268,8 @@ func RemoveTag(username string, id string, tag string) error {
 	}
 
 	updateResult, err := collection.UpdateOne(context.Background(), filter, update)
+	client.Disconnect(context.Background())
+
 	if err != nil {
 		return err
 	}
