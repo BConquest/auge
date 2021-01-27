@@ -57,10 +57,10 @@ func InsertBookmark(bm models.Bookmark) error {
 	userCollection := client.Database("development").Collection("bookmarks")
 
 	res, err := userCollection.InsertOne(context.Background(), bm)
-	log.Printf("%v\n", res)
 	if err != nil {
 		return err
 	}
+	_ = res
 	return nil
 }
 
@@ -72,8 +72,7 @@ func CheckIfBookmarked(username string, link string) (bool, error) {
 
 	userCollection := client.Database("development").Collection("bookmarks")
 
-	log.Printf("User: %v\tLink: %v\n", username, link)
-	filter := bson.D{{"user", username}, {"link", link}}
+	filter := bson.M{"user": username, "link": link}
 	var result bson.M
 	res := userCollection.FindOne(context.Background(), filter).Decode(&result)
 	if res != nil {
@@ -92,7 +91,7 @@ func CheckUsernameExists(username string) (bool, error) {
 
 	userCollection := client.Database("development").Collection("users")
 
-	filter := bson.D{{"username", username}}
+	filter := bson.M{"username": username}
 	var result bson.M
 	res := userCollection.FindOne(context.Background(), filter).Decode(&result)
 	if res != nil {
@@ -127,23 +126,20 @@ func GetUserBookmarks(username string) ([]models.Bookmark, error) {
 
 	client, err := getConnection()
 	if err != nil {
-		log.Printf("(WW) GetUserBookmarks: error getting connection >>> %v\n", err)
 		return bookmarks, err
 	}
 
 	collection := client.Database("development").Collection("bookmarks")
 
-	filter := bson.D{{"user", username}}
+	filter := bson.M{"user": username}
 	cur, err := collection.Find(context.Background(), filter)
 	if err != nil {
-		log.Printf("(WW) GetUserBookmarks: error in Find >>> %v\n", err)
 		return bookmarks, err
 	}
 	for cur.Next(context.Background()) {
 		var b models.Bookmark
 		err := cur.Decode(&b)
 		if err != nil {
-			log.Printf("(WW) GetUserBookmarks: error in Decode >>> %v\n", err)
 			return bookmarks, err
 		}
 
@@ -159,7 +155,6 @@ func GetUserBookmark(username string, id string) (models.Bookmark, error) {
 
 	client, err := getConnection()
 	if err != nil {
-		log.Printf("(WW) GetUserBookmarks: error getting connection >>> %v\n", err)
 		return bookmark, err
 	}
 
@@ -169,7 +164,6 @@ func GetUserBookmark(username string, id string) (models.Bookmark, error) {
 	filter := bson.M{"user": username, "_id": t}
 	res := collection.FindOne(context.Background(), filter).Decode(&bookmark)
 	if res != nil {
-		log.Printf("No bookmark found\n")
 		return bookmark, res
 	}
 
@@ -215,7 +209,7 @@ func AddTag(username string, id string, tag string) error {
 		return err
 	}
 
-	filter := bson.D{{"_id", t}, {"user", username}}
+	filter := bson.M{"_id": t, "user": username}
 	update := bson.D{
 		{"$addToSet", bson.D{
 			{"tags", tag},
@@ -224,7 +218,6 @@ func AddTag(username string, id string, tag string) error {
 
 	updateResult, err := collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
-		log.Printf("%v\n", err)
 		return err
 	}
 
@@ -248,16 +241,15 @@ func RemoveTag(username string, id string, tag string) error {
 		return err
 	}
 
-	filter := bson.D{{"_id", t}, {"user", username}}
+	filter := bson.M{"_id": t, "user": username}
 	update := bson.D{
-		{"$pull", bson.D{
-			{"tags", tag},
+		{"$pull", bson.M{
+			"tags": tag,
 		}},
 	}
 
 	updateResult, err := collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
-		log.Printf("%v\n", err)
 		return err
 	}
 

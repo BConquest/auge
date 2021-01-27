@@ -1,9 +1,7 @@
 package handler
 
 import (
-	"log"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -27,11 +25,11 @@ func CreateBookmark(c echo.Context) (err error) {
 
 	b := &models.Bookmark{}
 	if err = c.Bind(b); err != nil {
-		return
+		return c.JSON(http.StatusBadRequest, err)
 	}
 
 	if b.Link == "" {
-		return &echo.HTTPError{Code: http.StatusBadRequest, Message: "invalid url"}
+		return c.JSON(http.StatusBadRequest, "invalid url")
 	}
 
 	b.User = u.ID
@@ -39,7 +37,6 @@ func CreateBookmark(c echo.Context) (err error) {
 
 	check, er := lib.CheckIfBookmarked(b.User, b.Link)
 	if er != nil || check == false {
-		log.Printf("Bookmark Already Exists")
 		return c.JSON(http.StatusAlreadyReported, "Bookmark already added")
 	}
 
@@ -47,7 +44,7 @@ func CreateBookmark(c echo.Context) (err error) {
 
 	err = lib.InsertBookmark(*b)
 	if err != nil {
-		return
+		return c.JSON(http.StatusBadRequest, "Bookmark not added")
 	}
 
 	return c.JSON(http.StatusCreated, usernameFromToken(c))
@@ -55,16 +52,11 @@ func CreateBookmark(c echo.Context) (err error) {
 
 func GetBookmarks(c echo.Context) (err error) {
 	username := usernameFromToken(c)
-	page, _ := strconv.Atoi(c.QueryParam("page"))
-	limit, _ := strconv.Atoi(c.QueryParam("limit"))
-	if limit == 0 {
-		limit = 100
-	}
-	if page == 0 {
-		page = 1
-	}
 
 	bookmarks, err := lib.GetUserBookmarks(username)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err)
+	}
 
 	return c.JSON(http.StatusOK, bookmarks)
 }
@@ -75,7 +67,7 @@ func GetBookmark(c echo.Context) (err error) {
 
 	bookmark, err := lib.GetUserBookmark(username, id)
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, "bookmark not found")
+		return c.JSON(http.StatusBadRequest, err)
 	}
 
 	return c.JSON(http.StatusOK, bookmark)
@@ -87,8 +79,7 @@ func RemoveBookmark(c echo.Context) (err error) {
 
 	err = lib.RemoveBookmark(username, id)
 	if err != nil {
-		log.Printf("%v\n", err)
-		return c.JSON(http.StatusBadRequest, "bookmark not found")
+		return c.JSON(http.StatusBadRequest, err)
 	}
 
 	return c.JSON(http.StatusOK, "bookmark removed")
@@ -101,8 +92,7 @@ func AddTag(c echo.Context) (err error) {
 
 	err = lib.AddTag(username, id, tag)
 	if err != nil {
-		log.Printf("%v\n", err)
-		return c.JSON(http.StatusBadRequest, "bookmark not found")
+		return c.JSON(http.StatusBadRequest, err)
 	}
 
 	return c.JSON(http.StatusOK, "tag added")
@@ -115,8 +105,7 @@ func RemoveTag(c echo.Context) (err error) {
 
 	err = lib.RemoveTag(username, id, tag)
 	if err != nil {
-		log.Printf("%v\n", err)
-		return c.JSON(http.StatusBadRequest, "bookmark not found")
+		return c.JSON(http.StatusBadRequest, err)
 	}
 
 	return c.JSON(http.StatusOK, "tag removed")
