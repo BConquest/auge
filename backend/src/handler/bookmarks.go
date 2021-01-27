@@ -66,3 +66,28 @@ func GetBookmarks(c echo.Context) (err error) {
 
 	return c.JSON(http.StatusOK, bookmarks)
 }
+
+func GetBookmark(c echo.Context) (err error) {
+	username := usernameFromToken(c)
+	id := c.Param("id")
+
+	bookmark, err := lib.GetUserBookmark(username, id)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, "bookmark not found")
+	}
+
+	return c.JSON(http.StatusOK, bookmark)
+}
+
+func RemoveBookmark(c echo.Context) (err error) {
+	username := usernameFromToken(c)
+	id := c.Param("id")
+
+	err = lib.RemoveBookmark(username, id)
+	if err != nil {
+		log.Printf("%v\n", err)
+		return c.JSON(http.StatusBadRequest, "bookmark not found")
+	}
+
+	return c.JSON(http.StatusOK, "bookmark removed")
+}

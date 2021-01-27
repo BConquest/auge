@@ -2,10 +2,12 @@ package lib
 
 import (
 	"context"
+	"errors"
 	"log"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
@@ -152,4 +154,52 @@ func GetUserBookmarks(username string) ([]models.Bookmark, error) {
 	cur.Close(context.Background())
 
 	return bookmarks, nil
+}
+
+func GetUserBookmark(username string, id string) (models.Bookmark, error) {
+	var bookmark models.Bookmark
+
+	client, err := getConnection()
+	if err != nil {
+		log.Printf("(WW) GetUserBookmarks: error getting connection >>> %v\n", err)
+		return bookmark, err
+	}
+
+	collection := client.Database("development").Collection("bookmarks")
+
+	t, err := primitive.ObjectIDFromHex(id)
+	filter := bson.M{"user": username, "_id": t}
+	res := collection.FindOne(context.Background(), filter).Decode(&bookmark)
+	if res != nil {
+		log.Printf("No bookmark found\n")
+		return bookmark, res
+	}
+
+	return bookmark, res
+}
+
+func RemoveBookmark(username string, id string) error {
+	client, err := getConnection()
+	if err != nil {
+		return err
+	}
+
+	collection := client.Database("development").Collection("bookmarks")
+
+	t, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"_id": t}
+	res, err := collection.DeleteOne(context.Background(), filter)
+	if err != nil {
+		return err
+	}
+
+	if res.DeletedCount == 0 {
+		return errors.New("no bookmark deleted")
+	}
+
+	return nil
 }
