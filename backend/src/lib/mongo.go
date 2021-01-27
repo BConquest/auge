@@ -40,10 +40,10 @@ func InsertUser(user models.User) error {
 	userCollection := client.Database("development").Collection("users")
 
 	res, err := userCollection.InsertOne(context.Background(), user)
-	log.Printf("%v\n", res)
 	if err != nil {
 		return err
 	}
+	_ = res
 	return nil
 }
 
@@ -108,16 +108,14 @@ func GetUser(username string) (models.User, error) {
 
 	client, err := getConnection()
 	if err != nil {
-		log.Printf("(EE) GetUser: error getting connection >>> %v\n", err)
 		return user, err
 	}
 
 	userCollection := client.Database("development").Collection("users")
 
-	filter := bson.D{{"username", username}}
+	filter := bson.M{"username": username}
 	res := userCollection.FindOne(context.Background(), filter).Decode(&user)
 	if res != nil {
-		log.Printf("(WW) GetUser: error finding user: %v\n", res)
 		return user, err
 	}
 
