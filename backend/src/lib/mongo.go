@@ -236,3 +236,36 @@ func AddTag(username string, id string, tag string) error {
 	}
 	return nil
 }
+
+func RemoveTag(username string, id string, tag string) error {
+	client, err := getConnection()
+	if err != nil {
+		return err
+	}
+
+	collection := client.Database("development").Collection("bookmarks")
+
+	t, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.D{{"_id", t}, {"user", username}}
+	update := bson.D{
+		{"$pull", bson.D{
+			{"tags", tag},
+		}},
+	}
+
+	updateResult, err := collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		log.Printf("%v\n", err)
+		return err
+	}
+
+	log.Printf("%v\n", updateResult)
+	if updateResult.MatchedCount == 1 && updateResult.ModifiedCount == 0 {
+		return errors.New("tag already added")
+	}
+	return nil
+}

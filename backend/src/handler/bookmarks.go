@@ -107,3 +107,17 @@ func AddTag(c echo.Context) (err error) {
 
 	return c.JSON(http.StatusOK, "tag added")
 }
+
+func RemoveTag(c echo.Context) (err error) {
+	username := usernameFromToken(c)
+	id := c.Param("id")
+	tag := c.Param("tag")
+
+	err = lib.RemoveTag(username, id, tag)
+	if err != nil {
+		log.Printf("%v\n", err)
+		return c.JSON(http.StatusBadRequest, "bookmark not found")
+	}
+
+	return c.JSON(http.StatusOK, "tag removed")
+}

@@ -4,7 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
-	//"golang.org/x/crypto/acme/autocert"
+	"golang.org/x/crypto/acme/autocert"
 
 	"paxavis.dev/paxavis/auge/src/handler"
 	"paxavis.dev/paxavis/auge/src/lib"
@@ -19,9 +19,9 @@ func main() {
 
 	secret := []byte(lib.GetJWTSecret("./config.toml"))
 
-	//e.AutoTLSManager.Cache = autocert.DirCache("/var/www/.cache")
+	e.AutoTLSManager.Cache = autocert.DirCache("/var/www/.cache")
 
-	//e.Pre(middleware.HTTPSRedirect())
+	e.Pre(middleware.HTTPSRedirect())
 
 	e.Use(middleware.CORS())
 
@@ -48,7 +48,7 @@ func main() {
 	e.GET("/bookmark/:id", handler.GetBookmark)
 
 	e.DELETE("/bookmark/:id", handler.RemoveBookmark)
+	e.DELETE("/bookmark/:id/:tag", handler.RemoveTag)
 
-	//e.Logger.Fatal(e.StartAutoTLS(":1235"))
-	e.Logger.Fatal(e.Start(":1235"))
+	e.Logger.Fatal(e.StartAutoTLS(":1235"))
 }
