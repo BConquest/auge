@@ -191,7 +191,7 @@ func RemoveBookmark(username string, id string) error {
 		return err
 	}
 
-	filter := bson.M{"_id": t}
+	filter := bson.M{"_id": t, "username": username}
 	res, err := collection.DeleteOne(context.Background(), filter)
 	if err != nil {
 		return err
@@ -201,5 +201,38 @@ func RemoveBookmark(username string, id string) error {
 		return errors.New("no bookmark deleted")
 	}
 
+	return nil
+}
+
+func AddTag(username string, id string, tag string) error {
+	client, err := getConnection()
+	if err != nil {
+		return err
+	}
+
+	collection := client.Database("development").Collection("bookmarks")
+
+	t, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.D{{"_id", t}, {"user", username}}
+	update := bson.D{
+		{"$addToSet", bson.D{
+			{"tags", tag},
+		}},
+	}
+
+	updateResult, err := collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		log.Printf("%v\n", err)
+		return err
+	}
+
+	log.Printf("%v\n", updateResult)
+	if updateResult.MatchedCount == 1 && updateResult.ModifiedCount == 0 {
+		return errors.New("tag already added")
+	}
 	return nil
 }

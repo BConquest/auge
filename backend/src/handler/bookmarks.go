@@ -43,6 +43,8 @@ func CreateBookmark(c echo.Context) (err error) {
 		return c.JSON(http.StatusAlreadyReported, "Bookmark already added")
 	}
 
+	b.Tags = append(b.Tags, "")
+
 	err = lib.InsertBookmark(*b)
 	if err != nil {
 		return
@@ -90,4 +92,18 @@ func RemoveBookmark(c echo.Context) (err error) {
 	}
 
 	return c.JSON(http.StatusOK, "bookmark removed")
+}
+
+func AddTag(c echo.Context) (err error) {
+	username := usernameFromToken(c)
+	id := c.Param("id")
+	tag := c.Param("tag")
+
+	err = lib.AddTag(username, id, tag)
+	if err != nil {
+		log.Printf("%v\n", err)
+		return c.JSON(http.StatusBadRequest, "bookmark not found")
+	}
+
+	return c.JSON(http.StatusOK, "tag added")
 }

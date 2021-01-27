@@ -39,7 +39,9 @@ func main() {
 
 	e.POST("/signup", handler.Signup)
 	e.POST("/login", handler.Login)
+
 	e.POST("/addbookmark", handler.CreateBookmark)
+	e.POST("/bookmark/:id/:tag", handler.AddTag)
 
 	e.GET("/user/:id", handler.RequestUser)
 	e.GET("/bookmark", handler.GetBookmarks)
