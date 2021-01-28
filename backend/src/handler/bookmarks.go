@@ -28,7 +28,7 @@ func CreateBookmark(c echo.Context) (err error) {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	if b.Link == "" {
+	if lib.CheckLinkResponse(b.Link) == false {
 		return c.JSON(http.StatusBadRequest, "invalid url")
 	}
 
