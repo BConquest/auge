@@ -83,7 +83,7 @@ func Login(c echo.Context) (err error) {
 		return c.JSON(http.StatusBadRequest, err)
 	}
 
-	return c.JSON(http.StatusOK, "Login Success")
+	return c.JSON(http.StatusOK, userP)
 }
 
 func RequestUser(c echo.Context) (err error) {
