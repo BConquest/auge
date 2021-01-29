@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
-import Login from './components/login.js';
-import Signup from './components/signup.js';
+import SLForm from './containers/slForm.js';
 
 function CheckLocalStorage() {
     return localStorage.getItem('token');
@@ -10,12 +9,8 @@ function CheckLocalStorage() {
 function App() {
     const token = CheckLocalStorage();
 
-    useEffect(() => {
-        console.log("Hey");
-    });
-
     if (token == null){
-        return (<div> <Login /> <Signup/> </div>);
+        return <SLForm />;
     } else {
         return (<p> Hey </p>);
     }
