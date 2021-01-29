@@ -47,7 +47,7 @@ func CreateBookmark(c echo.Context) (err error) {
 		return c.JSON(http.StatusBadRequest, "Bookmark not added")
 	}
 
-	return c.JSON(http.StatusCreated, usernameFromToken(c))
+	return c.JSON(http.StatusCreated, "Bookmark added")
 }
 
 func GetBookmarks(c echo.Context) (err error) {
