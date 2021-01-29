@@ -28,7 +28,7 @@ async function addBookmark(data = {}, token = "") {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWRpZW5jZSI6InVzZXIiLCJleHAiOjE2MTIxNTE5MzgsImlkIjoiYmx1In0.dpZ9WTNBBewqO0jY2a5thla1T54x2aEfrYrobEQv-Fg"
+            'Authorization': token
         },
         body: JSON.stringify(data)
     });
