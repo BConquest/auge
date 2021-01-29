@@ -1,6 +1,7 @@
 import React from 'react';
 
 import SLForm from './containers/slForm.js';
+import Auge from './containers/auge.js';
 
 function CheckLocalStorage() {
     return localStorage.getItem('token');
@@ -12,7 +13,7 @@ function App() {
     if (token == null){
         return <SLForm />;
     } else {
-        return (<p> Hey </p>);
+        return <Auge />;
     }
 }
 

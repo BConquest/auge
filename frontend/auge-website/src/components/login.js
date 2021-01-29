@@ -13,8 +13,10 @@ function Login() {
             "password": password
         };
         const data = await login(user);
-        localStorage.setItem('token', data.tokens);
-        window.location.reload(true);
+        if (data.tokens != null) {
+            localStorage.setItem('token', data.tokens);
+            window.location.reload(true);
+        } 
     }
 
     return (
